@@ -1,0 +1,79 @@
+#!/bin/bash
+# Creates ensemble models.
+# This assumes that `singletons` has already been run for this data path.
+
+set -euo pipefail
+
+readonly OPTS=$(getopt                               \
+                    --name "$(basename "$0")"        \
+                    --options ""                     \
+                    --longoptions "data_path:,seed:" \
+                    -- "$@")
+eval set --${OPTS}
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --data_path)
+            readonly DATA_PATH=$2; shift 2;;
+        --seed)
+            readonly SEED=$2
+            shift 2
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
+readonly TAGGERS=("TnT" "Collins" "LAPOS" "Stanford" "NLP4J" "Flair")
+
+oracle() {
+    echo "Oracle ensemble..."
+    ARGS="${DATA_PATH}/test.textproto"
+    for TAGGER in ${TAGGERS[@]}; do
+        ARGS+=" ${DATA_PATH}/test.${TAGGER}.textproto"
+    done
+    ./oracle_ensemble.py ${ARGS} > "${DATA_PATH}/test.oracle.textproto"
+}
+
+stack() {
+    echo "Stack ensemble..."
+    local -r MODEL_PATH="--model_path=${DATA_PATH}/stack.model"
+    ARGS="${MODEL_PATH} --seed=${SEED} ${DATA_PATH}/dev.textproto"
+    for TAGGER in ${TAGGERS[@]}; do
+        ARGS+=" ${DATA_PATH}/dev.${TAGGER}.textproto"
+    done
+    ./train_stack.py ${ARGS}
+    ARGS="${MODEL_PATH}"
+    for TAGGER in ${TAGGERS[@]}; do
+        ARGS+=" ${DATA_PATH}/test.${TAGGER}.textproto"
+    done
+    ./stack_ensemble.py ${ARGS} > "${DATA_PATH}/test.stack.textproto"
+}
+
+vote() {
+    echo "Vote ensemble..."
+    ARGS=""
+    for TAGGER in ${TAGGERS[@]}; do
+        ARGS+=" ${DATA_PATH}/test.${TAGGER}.textproto"
+    done
+    ./vote_ensemble.py ${ARGS} > "${DATA_PATH}/test.vote.textproto"
+}
+
+evaluation() {
+    echo "Evaluation..."
+    ./evaluate.py \
+         "--train=${DATA_PATH}/train.textproto" \
+         "--gold=${DATA_PATH}/test.textproto" \
+         "${DATA_PATH}/test.vote.textproto" \
+         "${DATA_PATH}/test.stack.textproto" \
+         "${DATA_PATH}/test.oracle.textproto"
+}
+
+main() {
+    oracle
+    stack  
+    vote
+    evaluation
+}
+
+main

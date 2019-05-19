@@ -1,0 +1,17 @@
+// Messages for the tagging experiments.
+
+syntax = "proto2";
+
+package tagging;
+
+message Sentence {
+  // It is tempting to make these pairs of strings instead, but it makes
+  // the whole thing much more verbose.
+  repeated string tokens = 1;
+  repeated string tags = 2;
+}
+
+message Sentences {
+  repeated Sentence sentences = 1;
+  optional string domain = 2;
+}
