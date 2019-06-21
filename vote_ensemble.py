@@ -36,5 +36,5 @@ def main(args):
 if __name__ == "__main__":
     logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("textproto", nargs="+", help="Input .textproto files")
+    parser.add_argument("textproto", nargs="+", help="input .textproto files")
     main(parser.parse_args())

@@ -19,7 +19,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("input_textproto_path", help="Input text-formant PB")
-    parser.add_argument("output_textproto_path", help="Output text-format PB")
-    parser.add_argument("--size", required=True, type=int, help="Sample size")
+    parser.add_argument("input_textproto_path", help="input text-formant PB")
+    parser.add_argument("output_textproto_path", help="output text-format PB")
+    parser.add_argument("--size", required=True, type=int, help="sample size")
     main(parser.parse_args())

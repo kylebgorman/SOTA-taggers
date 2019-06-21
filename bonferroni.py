@@ -81,7 +81,7 @@ if __name__ == "__main__":
     logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--alpha", type=float, default=0.05, help="Desired alpha level"
+        "--alpha", type=float, default=0.05, help="desired alpha level"
     )
-    parser.add_argument("--data_path", required=True, help="Path to data")
+    parser.add_argument("--data_path", required=True, help="path to data")
     main(parser.parse_args())

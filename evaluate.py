@@ -69,18 +69,18 @@ if __name__ == "__main__":
     logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--gold", required=True, help="Path to textproto of gold tag data"
+        "--gold", required=True, help="path to textproto of gold tag data"
     )
     parser.add_argument(
         "--train",
-        help="Path to textproto of training data, used to compute OOV accuracy",
+        help="path to textproto of training data, used to compute OOV accuracy",
     )
     parser.add_argument(
-        "hypo1", help="Path to textproto of hypothesized tag data"
+        "hypo1", help="path to textproto of hypothesized tag data"
     )
     parser.add_argument(
         "hypo2",
         nargs="*",
-        help="Optional additional textprotos of hypothesized tag data",
+        help="optional additional textprotos of hypothesized tag data",
     )
     main(parser.parse_args())

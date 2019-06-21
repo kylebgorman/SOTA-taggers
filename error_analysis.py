@@ -12,7 +12,6 @@ import sys
 from typing import Counter, Dict, List, Tuple
 
 import numpy
-
 from nltk.metrics.agreement import AnnotationTask
 import tagdata_pb2
 import textproto
@@ -53,7 +52,10 @@ class TagAnalysis:
         return math.isclose(self.percent_correct(), 1.0)
 
     def __repr__(self):
-        return f"{self.token} / {self.ground_truth},  tags: {dict(self.hypothesis_counts())}"
+        return (
+            f"{self.token} / {self.ground_truth}, "
+            f"tags: {dict(self.hypothesis_counts())}"
+        )
 
 
 class SentenceAnalysis:
@@ -67,7 +69,7 @@ class SentenceAnalysis:
         self.tagger_lookup = tagger_lookup
 
     def discordant_tokens(self) -> List[TagAnalysis]:
-        """Returns tokens where the hypothesized tags differ between taggers."""
+        """Returns tokens for which hypothesized tags differ."""
         return [
             self.analyzed_tokens[i] for i in self.discordant_token_indices()
         ]
@@ -106,14 +108,11 @@ class SentenceAnalysis:
 
     def multi_kappa(self) -> float:
         """Compute what NLTK calls multi-kappa."""
-        # There is a divide-by-zero bug in NLTK's implementation, so we are doing
-        # this is a slightly more complex way than is normally necessary.
+        # There is a divide-by-zero bug in NLTK's implementation, so we are
+        # doing this is a slightly more complex way than is normally necessary.
         task = self._annotation_task()
         Ae = task._pairwise_average(task.Ae_kappa)
-        if Ae == 1.0:
-            logging.warning("Ae was 1.0 for sentence!")
-            return 1.0
-        return self._annotation_task().multi_kappa()
+        return 1.0 if Ae == 1.0 else self._annotation_task().multi_kappa()
 
     def _annotation_task(self) -> AnnotationTask:
         """Creates an NLTK AnonotationTask.
@@ -130,7 +129,7 @@ class SentenceAnalysis:
     def __repr__(self):
         """Pretty-print this sentence.
 
-        As a bonus, it can be pasted directly into Excel for easier manual inspection.
+        It can be pasted directly into Excel for easier manual inspection.
 
         Example:
 
@@ -145,7 +144,7 @@ class SentenceAnalysis:
         TnT	VBN	IN	RB	.
         """
         to_ret = ""
-        # First line: token indices
+        # First line: token indices.
         to_ret += "\t"
         to_ret += "\t".join([str(i) for i in range(len(self.sentence.tokens))])
         to_ret += "\n"
@@ -187,10 +186,10 @@ def _analyze_sentence(
     gold: tagdata_pb2.Sentence,
     *hypotheses: tagdata_pb2.Sentence,
 ) -> SentenceAnalysis:
-    """Compes a set of hypothesis to a gold reference.
+    """Compares a set of hypothesis to a gold reference.
 
-    This produces, for each token, a frequency count of the various corresponding
-    tags in the hypotheses. So, if the gold standard was:
+    This produces, for each token, a frequency count of the various
+    corresponding tags in the hypotheses. So, if the gold standard was:
 
     the/DT red/JJ dog/NN
 
@@ -235,20 +234,22 @@ def main(args):
         logging.error("Gold file %s not found", args.gold)
         sys.exit(1)
     # Now verifies that those files exist.
-    for infile in args.input:
-        if not os.path.exists(infile):
-            logging.error("Input file %s not found", infile)
+    for hypo in args.hypo:
+        if not os.path.exists(hypo):
+            logging.error("Input file %s not found", hypo)
             sys.exit(1)
     logging.info("Gold standard: %s", args.gold)
     logging.info("Hypotheses:")
-    for h in args.input:
-        logging.info("\t%s", h)
+    for hypo in args.hypo:
+        logging.info("\t%s", hypo)
     logging.info(f"Output directory will be %s", args.output_directory)
-    gold_sentences = textproto.read_sentences(open(args.gold))
+    with open(args.gold, "r") as source:
+        gold_sentences = textproto.read_sentences(source)
     hypotheses: Dict[str, tagdata_pb2.Sentences] = {}
-    for infile in args.input:
-        this_hypo = textproto.read_sentences(open(infile))
-        hypotheses[infile] = this_hypo
+    for hypo in args.hypo:
+        with open(hypo, "r") as source:
+            this_hypo = textproto.read_sentences(source)
+        hypotheses[hypo] = this_hypo
     logging.info(
         f"Ground truth has %d sentences", len(gold_sentences.sentences)
     )
@@ -273,7 +274,7 @@ def main(args):
     # An iterator over tuples of Sentence objects.
     hypo_sentences = zip(*[list(h.sentences) for h in hypotheses.values()])
     # Computes a lookup table of tagger names.
-    tagger_lookup = [_parse_tagger_name(t) for t in args.input]
+    tagger_lookup = [_parse_tagger_name(t) for t in args.hypo]
     for gold_sentence, h_sents in zip(
         gold_sentences.sentences, hypo_sentences
     ):
@@ -297,18 +298,20 @@ def main(args):
         alpha_vals.append(this_alpha)
         kappa_vals.append(s.multi_kappa())
         print(
-            f"Analyzed {all_tok_count} tokens; {discordant_tok_count} discordant ({discordant_tok_count / all_tok_count})"
+            f"Analyzed {all_tok_count} tokens; {discordant_tok_count} "
+            f"discordant ({discordant_tok_count / all_tok_count:.4f})"
         )
     print(
-        f"At least one tagger incorrect: {incorrect_tok_count / all_tok_count}"
+        "At least one tagger incorrect: "
+        f"{incorrect_tok_count / all_tok_count:.4f}"
     )
     os.makedirs(args.output_directory, exist_ok=True)
     # Prints a master file containing alpha scores and other stats for each sentence.
     with open(
         os.path.join(args.output_directory, "all_sentences_alpha_vals.csv"),
         "w",
-    ) as outfile:
-        writer = csv.writer(outfile)
+    ) as sink:
+        writer = csv.writer(sink)
         col_headers = [
             "idx",
             "length",
@@ -351,8 +354,8 @@ def main(args):
     for idx in below_thresh_indices:
         with open(
             os.path.join(interesting_dir, f"{idx}_{alpha_vals[idx]}.txt"), "w"
-        ) as outfile:
-            outfile.write(str(all_analyses[idx]))
+        ) as sink:
+            sink.write(str(all_analyses[idx]))
     # Handles any specific one-off sentence indices that were requested by the user
     if args.specific_sentence_indices:
         target_sentence_dir = os.path.join(
@@ -366,47 +369,40 @@ def main(args):
             this_analysis = all_analyses[i]
             with open(
                 os.path.join(target_sentence_dir, f"{i}_{this_alpha}.txt"), "w"
-            ) as outfile:
-                outfile.write(str(this_analysis))
+            ) as sink:
+                sink.write(str(this_analysis))
 
 
 if __name__ == "__main__":
     logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--gold",
-        required=True,
-        type=str,
-        help="Path to textproto of gold tag data",
+        "--gold", required=True, help="path to textproto of gold tag data"
     )
     parser.add_argument(
         "--threshold",
         type=int,
         default=1,
-        help="Number of disagreements that are required to report",
+        help="number of disagreements that are required to report",
     )
     parser.add_argument(
         "--interesting_score",
         type=float,
         default=0.9,
-        help="Alpha threshold below which the sentence is saved",
+        help="alpha threshold below which the sentence is saved",
     )
     parser.add_argument(
         "--specific_sentence_indices",
         type=int,
         nargs="+",
-        help="Specific sentence indices to dump (for debugging)",
+        help="specific sentence indices to dump (for debugging)",
     )
     parser.add_argument(
         "--output_directory",
         required=True,
-        type=str,
-        help="Name of directory containing outputf files",
+        help="name of directory containing outputf files",
     )
     parser.add_argument(
-        "hypo",
-        type=str,
-        nargs="+",
-        help="LPath to textprotos of hypothesized tag data",
+        "hypo", nargs="+", help="path to textprotos of hypothesized tag data"
     )
     main(parser.parse_args())

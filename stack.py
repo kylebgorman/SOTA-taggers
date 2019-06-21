@@ -11,10 +11,6 @@ from typing import Iterable, Iterator, List
 import tagdata_pb2
 
 
-XType = Iterable[Iterable[str]]
-YType = Iterable[str]
-
-
 # Helpers.
 
 
@@ -60,7 +56,7 @@ class Stack:
         """Prepares data for the vectorizer."""
         return dict(enumerate(tags))
 
-    def fit(self, x: XType, y: YType):
+    def fit(self, x: Iterable[Iterable[str]], y: Iterable[str]):
         vx = self.vectorizer.fit_transform([Stack.dictify(tags) for tags in x])
         self.model.fit(vx, list(y))
 

@@ -41,23 +41,23 @@ def main(args):
 if __name__ == "__main__":
     logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--seed", required=True, type=int, help="Random seed")
+    parser.add_argument("--seed", required=True, type=int, help="random seed")
     parser.add_argument(
-        "--input_textproto_path", required=True, help="Input text-format PB"
+        "--input_textproto_path", required=True, help="input text-format PB"
     )
     parser.add_argument(
         "--output_train_textproto_path",
         required=True,
-        help="Output training text-format PB (80%)",
+        help="output training text-format PB (80%)",
     )
     parser.add_argument(
         "--output_dev_textproto_path",
         required=True,
-        help="Output dev text-format PB (10%)",
+        help="output dev text-format PB (10%)",
     )
     parser.add_argument(
         "--output_test_textproto_path",
         required=True,
-        help="Output test text-format PB (10%)",
+        help="output test text-format PB (10%)",
     )
     main(parser.parse_args())

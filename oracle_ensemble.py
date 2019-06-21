@@ -72,8 +72,8 @@ def main(args):
 if __name__ == "__main__":
     logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("gold", help="Path to textproto of gold tag data")
+    parser.add_argument("gold", help="path to textproto of gold tag data")
     parser.add_argument(
-        "hypo", nargs="+", help="Path to textproto of hypothesized tag data"
+        "hypo", nargs="+", help="path to textproto of hypothesized tag data"
     )
     main(parser.parse_args())

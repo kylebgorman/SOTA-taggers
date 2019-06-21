@@ -101,5 +101,5 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("parse", nargs="+", help="Input files")
+    parser.add_argument("parse", nargs="+", help="input files")
     main(parser.parse_args())

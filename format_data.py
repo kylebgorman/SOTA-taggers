@@ -185,13 +185,13 @@ if __name__ == "__main__":
         "--sourcefmt",
         default="textproto",
         choices=format_choices,
-        help="Input format",
+        help="input format",
     )
     parser.add_argument(
         "--sinkfmt",
         default="textproto",
         choices=format_choices,
-        help="Output format",
+        help="output format",
     )
     parser.add_argument("path", help="Input file path")
     main(parser.parse_args())

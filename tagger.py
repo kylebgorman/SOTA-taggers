@@ -505,5 +505,5 @@ if __name__ == "__main__":
         required=True,
         help="Tagger",
     )
-    parser.add_argument("--data_path", required=True, help="Input data path")
+    parser.add_argument("--data_path", required=True, help="input data path")
     main(parser.parse_args())

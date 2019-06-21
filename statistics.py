@@ -18,5 +18,5 @@ def main(args):
 if __name__ == "__main__":
     logging.basicConfig(level="INFO", format="%(levelname)s: %(message)s")
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("textproto", help="Path to textproto")
+    parser.add_argument("textproto", help="path to textproto")
     main(parser.parse_args())
