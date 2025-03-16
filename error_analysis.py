@@ -115,7 +115,7 @@ class SentenceAnalysis:
         return 1.0 if Ae == 1.0 else self._annotation_task().multi_kappa()
 
     def _annotation_task(self) -> AnnotationTask:
-        """Creates an NLTK AnonotationTask.
+        """Creates an NLTK AnnotationTask.
 
         Creates an NLTK AnnotationTask object for this set of hypotheses,
         initialized with an iterable of (coder, item, value) triples.
